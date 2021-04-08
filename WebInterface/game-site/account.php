@@ -104,68 +104,61 @@ color: #440000;
 
 
 
-<script language="javascript1.3">
-<!--
-function ajax(url,target) {
-    // native XMLHttpRequest object
-    //document.getElementById(target).innerHTML = 'sending...';
-    if (window.XMLHttpRequest) {
-        req = new XMLHttpRequest();
-        req.onreadystatechange = function() {ajaxDone(target);};
-        req.open("GET", url, true);
-        req.send(null);
-    // IE/Windows ActiveX version
-    } else if (window.ActiveXObject) {
-        req = new ActiveXObject("Microsoft.XMLHTTP");
-        if (req) {
-            req.onreadystatechange = function() {ajaxDone(target);};
-            req.open("GET", url, true);
-            req.send();
-        }
-    }
-}    
+<script type="text/javascript">
+const loadplayers = () => {
+	const PLAYERS = document.getElementById('PLAYERS');
+	let create = type => document.createElement(type);
+	let createText = text => document.createTextNode(text)
+	let appendChildren = (elem, ...children) => (
+		/* puts br after every element in the array */
+		children.map(child => [child, create('br')]) 
+			.flat()
+			/* removes the last br */
+			.slice(0,-1)
+			/* adds the children */
+			.forEach(child => elem.appendChild(child)),
+		elem
+	);
 
-function ajaxDone(target) {
-    // only if req is "loaded"
-    if (req.readyState == 4) {
-        // only if "OK"
-        if (req.status == 200) {
-            results = req.responseText;
-            document.getElementById(target).innerHTML = results;
-        } else {
-            document.getElementById(target).innerHTML="ajax error:\n" +
-                req.statusText;
-        }
-    }
+	/* 
+		the php page needs to be changed to work with this. send the data like so.
+		[{name: "a"}, {name: "b"}]
+		I have it as objects instead of just strings so you can add the buddy stuff easier
+	*/
+	fetch('web/playersonline.php?id=588112')
+		.then(data => data.json())
+		.then(json => {
+			let online = appendChildren(create('b'), createText(`${json.length} players`), createText('online now:'))
+			let players = json.map(player => createText(player.name))
+			/* i dont actually play HI so idk how the buddy stuff is supposed to look */
+			let buddies = appendChildren(create('i'), (font => (
+				font.color = 'BLUE',
+				font.textContent = `(0 buddies)`,
+				font
+			))(create('font')));
+			/* remove old players list */
+			[...PLAYERS.children].forEach(child => child.remove());
+			PLAYERS.textContent = ""
+			/* add new players list */
+			appendChildren(PLAYERS, online, ...players, buddies, (font => (
+				font.color = '222222',
+				font.size = -1,
+				appendChildren(font, (i => (i.textContent = 'This list refreshes every 30 seconds.', i))(create('i')))
+			))(create('font')))
+
+		})
 }
 
-function loadplayers() {
-  ajax('web/playersonline.php?id=588112','PLAYERS');
-  window.setTimeout("loadplayers()", 30000);  //reload player list every millisecs
-}
-window.setTimeout("loadplayers()", 10); ///load player list first time quick
-window.setTimeout("loadplayers()", 3000); ///load player list first time quick
+loadplayers();
+setInterval(loadplayers, 30000)
 
--->
-</script>
-<script>
-<!--
-
-function wopen(url, name, w, h)
-{
-// Fudge factors for window decoration space.
- // In my tests these work well on all platforms & browsers.
-w+=20;//w += 32;
-h+=60;//h += 96;
- var win = window.open(url,
-  name,
-  'width=' + w + ', height=' + h + ', ' +
-  'location=no, menubar=no, ' +
-  'status=no, toolbar=no, scrollbars=no, resizable=no');
- win.resizeTo(w, h);
- win.focus();
+const wopen = (url, name, w, h) => {
+	let win = window.open(url, name, 
+		`width=${w += 20}, height=${h += 20}, location=no, menubar=no, status=no, toolbars=no, scrollbars=no, resizable=no`
+	);
+	win.resizeTo(w, h);
+	win.focus();
 }
-// -->
 </script>
 
 <TABLE WIDTH=100% CELLPADDING=5><TR><TD VALIGN=TOP><TABLE BORDER=0 CELLPADDING=5><TR><TD VALIGN=top><CENTER>When Ready, <a href='/horseisle.php?USER=SilicaAndPina' target=popup onClick="wopen('/horseisle.php?USER=SilicaAndPina', 'popup', 790, 522); return false;">Enter the World<BR><BR><IMG BORDER=0 SRC=/web/screenshots/enterhorseisle.png></A><BR><BR>(<a href='/horseisle.php?USER=SilicaAndPina' target=popup onClick="wopen('/horseisle.php?USER=SilicaAndPina', 'popup', 846, 542); return false;">bigger borders version</A>)<BR>(<A HREF=horseisle.php?USER=SilicaAndPina>same window version</A>)</TD><TD VALIGN=top>Welcome back <B>SilicaAndPina</B>, Here is your account info and Horse Isle server status: (<A HREF=?>refresh</A>)<BR><BR>It has been: 0.2 hours since you were last online. You have logged in 2 times.<BR>You have <B><FONT COLOR=005500>$5,910</FONT></B> in Horse Isle money on hand and <B><FONT COLOR=005500>$0</FONT></B> in the bank.<BR>You have earned <B>25</B> of <B>63005</B> total quest points  (<B>0%</B> Complete)<BR></TD></TR></TABLE><BR><HR>
